@@ -153,7 +153,6 @@ implementino nuove funzioni, i prototipi e le definizioni devono essere inserite
 */
 
 // Funzione per calcolare la media del numero di collisioni delle chiavi contenute in una lista di chiavi
-// Funzione per calcolare la media del numero di collisioni delle chiavi contenute in una lista di chiavi
 double upo_ht_linprob_avg_collisions(const upo_ht_linprob_t ht, const upo_ht_key_list_t key_list)
 {
     if(upo_ht_linprob_is_empty(ht))
