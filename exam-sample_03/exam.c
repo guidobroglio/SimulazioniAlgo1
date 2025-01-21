@@ -153,31 +153,33 @@ implementino nuove funzioni, i prototipi e le definizioni devono essere inserite
 */
 
 // Funzione per calcolare la media del numero di collisioni delle chiavi contenute in una lista di chiavi
+// Funzione per calcolare la media del numero di collisioni delle chiavi contenute in una lista di chiavi
 double upo_ht_linprob_avg_collisions(const upo_ht_linprob_t ht, const upo_ht_key_list_t key_list)
 {
-    if(upo_ht_linprob_is_empty(ht) || key_list==NULL)
+    if(upo_ht_linprob_is_empty(ht))
     {
         return -1;
     }
+    upo_ht_key_list_node_t*current=key_list;
 
     size_t total_collisions=0;
     size_t keys_count=0;
-    upo_ht_key_list_node_t*current=key_list;
 
     while(current!=NULL)
     {
-        size_t hash=upo_ht_linprob_get_hasher(ht)(current->key, upo_ht_linprob_capacity(ht));
+        size_t hash_index=upo_ht_linprob_get_hasher(ht)(current->key, upo_ht_linprob_capacity(ht));
         size_t collisions=0;
+        int key_found=0;
 
-        while(ht->slots[hash].key!=NULL && collisions<upo_ht_linprob_capacity(ht))
+        while(ht->slots[hash_index].key!=NULL && collisions<upo_ht_linprob_capacity(ht) && key_found==0)
         {
-            if(upo_ht_linprob_get_comparator(ht)(ht->slots[hash].key,current->key)==0)
+            if(upo_ht_linprob_get_comparator(ht)(ht->slots[hash_index].key, current->key)==0)
             {
                 total_collisions+=collisions;
                 keys_count++;
-                break;
+                key_found=1;
             }
-            hash=(hash+1)%upo_ht_linprob_capacity(ht);
+            hash_index=(hash_index+1)%upo_ht_linprob_capacity(ht);
             collisions++;
         }
         current=current->next;
