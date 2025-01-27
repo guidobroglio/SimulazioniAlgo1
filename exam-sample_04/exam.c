@@ -159,37 +159,34 @@ la correttezza della propria implementazione.
 //Definizione della funzione upo_ht_sepchain_perc_collisions
 float upo_ht_sepchain_perc_collisions(const upo_ht_sepchain_t ht, const void *key)
 {
-    if (upo_ht_sepchain_is_empty(ht))
+    if(upo_ht_sepchain_is_empty(ht))
     {
         return -1;
     }
 
-    size_t hash_index = ht->key_hash(key, ht->capacity);
-    upo_ht_sepchain_list_node_t *current = ht->slots[hash_index].head;
+    size_t hash_index=ht->key_hash(key, ht->capacity);
+    upo_ht_sepchain_list_node_t*current=ht->slots[hash_index].head;
+    int keys_found=0;
+    int collisions_count=0;
 
-    int key_found = 0;
-    int collisions_count = 0;
-
-    while (current != NULL && key_found==0)
+    while(current!=NULL && keys_found==0)
     {
-        int compare = ht->key_cmp(key, current->key);
-        if (compare == 0)
+        int compare=ht->key_cmp(key, current->key);
+        if(compare==0)
         {
-            key_found = 1;
+            keys_found=1;
         }
         else
         {
             collisions_count++;
-            current = current->next;
+            current=current->next;
         }
     }
-
-    if (key_found==0)
+    if(keys_found==0)
     {
         return -1;
     }
-
-    float percentuale = ((float)collisions_count / (ht->size - 1)) * 100.0f;
+    float percentuale=((float)collisions_count/(ht->size-1))*100.0f;
     return percentuale;
 }
 

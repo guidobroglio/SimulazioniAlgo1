@@ -5,11 +5,11 @@
  *
  * \brief Collection of useful functions for testing.
  *
- * \author Marco Guazzone (marco.guazzone@uniupo.it)
+ * \author Anna Sapienza (anna.sapienza@uniupo.it)
  *
  * \copyright 2015 University of Piemonte Orientale, Computer Science Institute
  *
- *  This file is part of UPOalglib.
+ *  This file is part of UPOalglib developed by Marco Guazzone, Università del Piemonte Orientale.
  *
  *  UPOalglib is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@
 int upo_test_int_cmp(const void* a, const void* b);
 
 int upo_test_str_cmp(const void* a, const void* b);
+
+char* upo_test_double_to_string(const void *pval);
 
 char* upo_test_int_to_string(const void *pval);
 

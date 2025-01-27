@@ -7,13 +7,13 @@ LDLIBS += -lupoalglib -lm
 
 .PHONY: all clean
 
-all: test/bst_nth_minimum_key test/ht_linprob_avg_collisions
+all: test/bst_ksum_range test/ht_linprob_max_collisions
 
-test/bst_nth_minimum_key: test/bst_nth_minimum_key.o exam.o
-test/ht_linprob_avg_collisions: test/ht_linprob_avg_collisions.o exam.o
+test/bst_ksum_range: test/bst_ksum_range.o exam.o
+test/ht_linprob_max_collisions: test/ht_linprob_max_collisions.o exam.o
 
 clean:
-	$(RM) test/bst_nth_minimum_key
-	$(RM) test/ht_linprob_avg_collisions
+	$(RM) test/bst_ksum_range
+	$(RM) test/ht_linprob_max_collisions
 	$(RM) *.o test/*.o
 	$(RM) vgcore.* test/vgcore.*

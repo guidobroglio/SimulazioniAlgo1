@@ -18,11 +18,11 @@
  *   subtree of v.
  * .
  *
- * \author Anna Sapienza (anna.sapienza@uniupo.it)
+ * \author Marco Guazzone (marco.guazzone@uniupo.it)
  *
  * \copyright 2015 University of Piemonte Orientale, Computer Science Institute
  *
- *  This file is part of UPOalglib developed by Marco Guazzone, Università del Piemonte Orientale.
+ *  This file is part of UPOalglib.
  *
  *  UPOalglib is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,21 +65,22 @@ typedef struct upo_bst_node_s upo_bst_node_t;
 /** \brief Type for nodes of a binary search tree. */
 struct upo_bst_node_s
 {
-    void *key; /**< Pointer to user-provided key. */
-    void *value; /**< Pointer to user-provided value. */
-    upo_bst_node_t *left; /**< Pointer to the left child node. */
-    upo_bst_node_t *right; /**< Pointer to the right child node. */
+    void* key; /**< Pointer to user-provided key. */
+    void* value; /**< Pointer to user-provided value. */
+    upo_bst_node_t* left; /**< Pointer to the left child node. */
+    upo_bst_node_t* right; /**< Pointer to the right child node. */
 };
 
 /** \brief Defines a binary tree. */
 struct upo_bst_s
 {
-    upo_bst_node_t *root; /**< The root of the binary tree. */
+    upo_bst_node_t* root; /**< The root of the binary tree. */
     upo_bst_comparator_t key_cmp; /**< Pointer to the key comparison function. */
 };
 
 /** \brief Declares the Binary Search Tree type. */
 typedef struct upo_bst_s* upo_bst_t;
+
 
 /**
  * \brief Creates a new empty binary search tree.
@@ -123,6 +124,14 @@ void upo_bst_destroy(upo_bst_t tree, int destroy_data);
 void upo_bst_clear(upo_bst_t tree, int destroy_data);
 
 /**
+ * \brief Returns the comparison function stored in the binary search tree.
+ *
+ * \param tree The binary search tree.
+ * \return The comparison function.
+ */
+upo_bst_comparator_t upo_bst_get_comparator(const upo_bst_t tree);
+
+/**
  * \brief Tells if the given binary search tree is empty.
  *
  * \param tree The binary search tree.
@@ -134,32 +143,17 @@ void upo_bst_clear(upo_bst_t tree, int destroy_data);
  */
 int upo_bst_is_empty(const upo_bst_t tree);
 
-void upo_bst_insert(upo_bst_t tree, void *key, void *value);
-
 /**
- * \brief Returns the number of nodes stored on the given binary search tree.
+ * \brief Return the predecessor of the given key in the BST.
  *
  * \param tree The binary search tree.
- * \return The number of nodes of the given binary search tree.
+ * \param key Pointer to the value for which the predecessor is to be computed.
+ * \return A pointer to the largest key which is less than the value pointed
+ *  by \a key or NULL if no such key exists or if the BST is NULL.
  *
- * Worst-case complexity: linear in the number `n` of elements, `O(n)`.
+ * Worst-case complexity: linear in the the number `n` of elements.
  */
-size_t upo_bst_size(const upo_bst_t tree);
-/**
- * \brief Find the Lowest Common Ancestor (LCA) of two given keys.
- *
- * \param tree The binary search tree.
- * \param key1 The first key value.
- * \param key2 The second key value.
- * \return The key value of the Lowest Common Ancestor (LCA) of key1 and key2 (if any), 
- * or NULL if the tree is empty or key1 and/or key2 are not present in the tree
- *
- * This function  finds the Lowest Common Ancestor of two given keys, if they are present in the tree.
- * 
- * Worst-case complexity: linear in the number `n` of elements, `O(n)`.
- */
-int upo_bst_ksum_range(const upo_bst_t bst, const void*low, const void*high);
-
+const void* upo_bst_predecessor(const upo_bst_t tree, const void *key);
 
 
 #endif /* UPO_BST_H */

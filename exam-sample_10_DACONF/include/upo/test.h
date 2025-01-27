@@ -33,8 +33,6 @@ int upo_test_int_cmp(const void* a, const void* b);
 
 int upo_test_str_cmp(const void* a, const void* b);
 
-char* upo_test_double_to_string(const void *pval);
-
 char* upo_test_int_to_string(const void *pval);
 
 char* upo_test_str_to_string(const void *pval);

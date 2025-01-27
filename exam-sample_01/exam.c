@@ -35,50 +35,41 @@
  * nel caso peggiore dev’essere O(n), dove n è il numero di chiavi nel BST.
  */
 
-upo_bst_node_t*upo_bst_predecessor_imp(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp, upo_bst_node_t*key_pred);
+upo_bst_node_t*upo_bst_predecessor_imp(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp);
 
-upo_bst_node_t*upo_bst_predecessor_imp(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp, upo_bst_node_t*key_pred)
+upo_bst_node_t*upo_bst_predecessor_imp(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp)
 {
-  if(node==NULL || key==NULL)
-  {
-    return key_pred;
-  }
-  else
-  {
+    if(node==NULL)
+    {
+        return NULL;
+    }
     int compare=key_cmp(key, node->key);
 
     if(compare<=0)
     {
-      return upo_bst_predecessor_imp(node->left, key, key_cmp, key_pred);
+        return upo_bst_predecessor_imp(node->left, key, key_cmp);
     }
-    else
+    upo_bst_node_t*pred_node=upo_bst_predecessor_imp(node->right, key, key_cmp);
+
+    if(pred_node!=NULL)
     {
-      key_pred=node;
-      return upo_bst_predecessor_imp(node->right, key, key_cmp, key_pred);
+        return pred_node;
     }
-  }
+    return node;
 }
 
 const void* upo_bst_predecessor(const upo_bst_t bst, const void*key)
 {
-  if(upo_bst_is_empty(bst) || key==NULL)
-  {
-    return NULL;
-  }
-
-  else
-  {
-    upo_bst_node_t*key_pred=upo_bst_predecessor_imp(bst->root, (void*)key, bst->key_cmp, NULL);
-
-    if(key_pred==NULL)
+    if(upo_bst_is_empty(bst) || key==NULL)
     {
-      return NULL;
+        return NULL;
     }
-    else
+    upo_bst_node_t*pred_node=upo_bst_predecessor_imp(bst->root, (void*)key, bst->key_cmp);
+    if(pred_node==NULL)
     {
-      return key_pred->key;
+        return NULL;
     }
-  }
+    return pred_node->key;
 }
 
 /**** END of EXERCISE #1 ****/
@@ -111,72 +102,36 @@ const void* upo_bst_predecessor(const upo_bst_t bst, const void*key)
  *
  */
 
-//Metodo che scambia due elementi
-void upo_sort_swap(void*a, void*b, size_t size)
-{
-    //Inizializzo un array temporaneo
-    char temp[size];
-    //Copio l'elemento a nell'array temporaneo, scambiando i due elementi
-    memcpy(temp, a, size);
-    //Copio l'elemento b in a, scambiando i due elementi
-    memcpy(a, b, size);
-    //Copio l'elemento temporaneo in b, scambiando i due elementi
-    memcpy(b, temp, size);
-}
-
 void upo_bidi_bubble_sort(void*base, size_t n, size_t size, upo_sort_comparator_t cmp)
 {
-    //Se n è minore di 2, esci dalla funzione
-    if(n<2)
+    char*array=base;
+    int swapped=1;
+
+    while(swapped==1)
     {
-        return;
-    }
-    //Inizializzo un array di char
-    char*array=(char*)base;
-    //Inizializzo una variabile scambiato con 1
-    int scambiato=1;
-    //Inizializzo due variabili inizio con 0
-    size_t inizio=0;
-    //Inizializzo la variabile fine con n-1
-    size_t fine=n-1;
-    //Finché scambiato è uguale a 1
-    while(scambiato)
-    {
-        //Inizializzo scambiato a 0
-        scambiato=0;
-        //Finché i è minore di fine, incremento i
-        for(size_t i=inizio; i<fine; i++)
+        swapped=0;
+        for(size_t i=0; i<n-1; i++)
         {
-            //Se il confronto tra l'elemento i e l'elemento i+1 è maggiore di 0
             if(cmp(array+i*size, array+(i+1)*size)>0)
             {
-                //Scambio i due elementi
-                upo_sort_swap(array+i*size, array+(i+1)*size, size);
+                char temp[size];
+                memcpy(temp, array+i*size, size);
+                memcpy(array+i*size, array+(i+1)*size, size);
+                memcpy(array+(i+1)*size, temp, size);
+                swapped=1;
             }
         }
-        //Se scambiato è uguale a 1, esci dal ciclo
-        if(scambiato==1)
+        for(size_t i=n-1; i>0; i--)
         {
-            break;
-        }
-        //Decremento fine
-        fine--;
-        //Inizializzo scambiato a 1
-        scambiato=0;
-        //Finché i è maggiore di inizio, decremento i
-        for(size_t i=fine; i>inizio; i--)
-        {
-            //Se il confronto tra l'elemento i e l'elemento i-1 è minore di 0
             if(cmp(array+(i-1)*size, array+i*size)>0)
             {
-                //Scambio i due elementi
-                upo_sort_swap(array+(i-1)*size, array+i*size, size);
-                //Inizializzo scambiato a 1
-                scambiato=1;
+                char temp[size];
+                memcpy(temp, array+(i-1)*size, size);
+                memcpy(array+(i-1)*size, array+i*size, size);
+                memcpy(array+i*size, temp, size);
+                swapped=1;
             }
         }
-        //Incremento inizio
-        inizio++;
     }
 }
 /**** END of EXERCISE #2 ****/

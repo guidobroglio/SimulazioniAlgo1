@@ -68,43 +68,47 @@ typedef int (*upo_ht_comparator_t)(const void*, const void*);
 /*** END of COMMON TYPES ***/
 
 
-/*** BEGIN of HASH TABLE with SEPARATE CHAINING ***/
+/*** BEGIN of HASH TABLE with OPEN ADDRESSING ***/
 
 
-/** \brief Default capacity of hash tables with separate chaining. */
-#define UPO_HT_SEPCHAIN_DEFAULT_CAPACITY 997U
+/** \brief Initial capacity of hash tables with linear probing. */
+#define UPO_HT_LINPROB_DEFAULT_CAPACITY 16U
 
+/** \brief Type for nodes in a list of keys. */
+struct upo_ht_key_list_node_s {
+    void *key; 
+    struct upo_ht_key_list_node_s *next; 
+};
 
-/** \brief Type for nodes of the list of collisions. */
-struct upo_ht_sepchain_list_node_s
+/** \brief Alias for type for nodes in a list of keys. */
+typedef struct upo_ht_key_list_node_s upo_ht_key_list_node_t;
+
+/** \brief Alias for type for a list of keys. */
+typedef upo_ht_key_list_node_t *upo_ht_key_list_t;
+
+/** \brief Type for slots of hash tables with linear probing. */
+struct upo_ht_linprob_slot_s
 {
     void *key; /**< Pointer to the user-provided key. */
     void *value; /**< Pointer to the value associated to the key. */
-    struct upo_ht_sepchain_list_node_s *next; /**< Pointer to the next node in the list. */
+    int tombstone; /**< Flag used to mark this slot as deleted. */
 };
-/** \brief Alias for the type for nodes of the list of collisions. */
-typedef struct upo_ht_sepchain_list_node_s upo_ht_sepchain_list_node_t;
 
-/** \brief Type for slots of hash tables with separate chaining. */
-struct upo_ht_sepchain_slot_s
-{
-    upo_ht_sepchain_list_node_t *head; /**< Pointer to the head of the list of collisions. */
-};
-/** \brief Alias for the type for slots of hash tables with separate chaining. */
-typedef struct upo_ht_sepchain_slot_s upo_ht_sepchain_slot_t;
+/** \brief Alias for type for slots of hash tables with linear probing. */
+typedef struct upo_ht_linprob_slot_s upo_ht_linprob_slot_t;
 
-/** \brief Type for hash tables with separate chaining. */
-struct upo_ht_sepchain_s
+/** \brief Type for hash tables with linear probing. */
+struct upo_ht_linprob_s
 {
-    upo_ht_sepchain_slot_t *slots; /**< The hash table as array of slots. */
+    upo_ht_linprob_slot_t *slots; /**< The hash table as array of slots. */
     size_t capacity; /**< The capacity of the hash table. */
-    size_t size; /**< The number of elements stored in the hash table. */
+    size_t size; /**< The number of stored key-value pairs. */
     upo_ht_hasher_t key_hash; /**< The key hash function. */
     upo_ht_comparator_t key_cmp; /**< The key comparison function. */
 };
 
-/** \brief Type for hash tables with separate chaining. */
-typedef struct upo_ht_sepchain_s* upo_ht_sepchain_t;
+/** \brief Type for hash tables with linear probing. */
+typedef struct upo_ht_linprob_s* upo_ht_linprob_t;
 
 
 /**
@@ -117,7 +121,7 @@ typedef struct upo_ht_sepchain_s* upo_ht_sepchain_t;
  *
  * Worst-case complexity: linear in the capacity `m` of the hash table, `O(m)`.
  */
-upo_ht_sepchain_t upo_ht_sepchain_create(size_t m, upo_ht_hasher_t key_hash, upo_ht_comparator_t key_cmp);
+upo_ht_linprob_t upo_ht_linprob_create(size_t m, upo_ht_hasher_t hasher, upo_ht_comparator_t key_cmp);
 
 /**
  * \brief Destroys the given hash table.
@@ -131,7 +135,7 @@ upo_ht_sepchain_t upo_ht_sepchain_create(size_t m, upo_ht_hasher_t key_hash, upo
  *
  * Worst-case complexity: linear in the capacity `m` of the hash table, `O(m)`.
  */
-void upo_ht_sepchain_destroy(upo_ht_sepchain_t ht, int destroy_data);
+void upo_ht_linprob_destroy(upo_ht_linprob_t ht, int destroy_data);
 
 /**
  * \brief Removes all key-value pairs from the given hash table.
@@ -145,7 +149,17 @@ void upo_ht_sepchain_destroy(upo_ht_sepchain_t ht, int destroy_data);
  *
  * Worst-case complexity: linear in the capacity `m` of the hash table, `O(m)`.
  */
-void upo_ht_sepchain_clear(upo_ht_sepchain_t ht, int destroy_data);
+void upo_ht_linprob_clear(upo_ht_linprob_t ht, int destroy_data);
+
+/**
+ * \brief Returns the capacity of the hash table.
+ *
+ * \param ht The hash table.
+ * \return The total number of slots of the hash tables.
+ *
+ * Worst-case complexity: constant, `O(1)`.
+ */
+size_t upo_ht_linprob_capacity(const upo_ht_linprob_t ht);
 
 /**
  * \brief Tells if the given hash table is empty.
@@ -157,27 +171,7 @@ void upo_ht_sepchain_clear(upo_ht_sepchain_t ht, int destroy_data);
  *
  * Worst-case complexity: constant, `O(1)`.
  */
-int upo_ht_sepchain_is_empty(const upo_ht_sepchain_t ht);
-
-/**
- * \brief Returns the capacity of the hash table.
- *
- * \param ht The hash table.
- * \return The total number of slots of the hash tables.
- *
- * Worst-case complexity: constant, `O(1)`.
- */
-size_t upo_ht_sepchain_capacity(const upo_ht_sepchain_t ht);
-
-/**
- * \brief Returns the size of the hash table.
- *
- * \param ht The hash table.
- * \return The number of keys stored in the hash tables.
- *
- * Worst-case complexity: linear in the capacity `m` of the hash table, `O(m)`.
- */
-size_t upo_ht_sepchain_size(const upo_ht_sepchain_t ht);
+int upo_ht_linprob_is_empty(const upo_ht_linprob_t ht);
 
 /**
  * \brief Returns the load factor of the hash table.
@@ -188,7 +182,7 @@ size_t upo_ht_sepchain_size(const upo_ht_sepchain_t ht);
  *
  * Worst-case complexity: constant, `O(1)`.
  */
-double upo_ht_sepchain_load_factor(const upo_ht_sepchain_t ht);
+double upo_ht_linprob_load_factor(const upo_ht_linprob_t ht);
 
 /**
  * \brief Returns the key comparator function.
@@ -196,7 +190,7 @@ double upo_ht_sepchain_load_factor(const upo_ht_sepchain_t ht);
  * \param ht The hash table.
  * \return The key comparator function.
  */
-upo_ht_comparator_t upo_ht_sepchain_get_comparator(const upo_ht_sepchain_t ht);
+upo_ht_comparator_t upo_ht_linprob_get_comparator(const upo_ht_linprob_t ht);
 
 /**
  * \brief Returns the key hasher function.
@@ -204,26 +198,29 @@ upo_ht_comparator_t upo_ht_sepchain_get_comparator(const upo_ht_sepchain_t ht);
  * \param ht The hash table.
  * \return The key hasher function.
  */
-upo_ht_hasher_t upo_ht_sepchain_get_hasher(const upo_ht_sepchain_t ht);
+upo_ht_hasher_t upo_ht_linprob_get_hasher(const upo_ht_linprob_t ht);
 
 /**
- * \brief Removes the value identified by the provided key in the given
- *  hash table.
+ * \brief Returns the size of the hash table.
  *
  * \param ht The hash table.
- * \param key The key.
- * \param destroy_data Tells whether the previously allocated memory for data,
- *  that is to be removed, must be freed (value `1`) or not (value `0`).
+ * \return The number of keys stored in the hash tables.
  *
- * Memory deallocation (if requested) is performed by means of the `free()`
- * standard C function.
- *
- * Worst-case complexity: linear in the number `n` of elements, `O(n)`.
+ * Worst-case complexity: constant, `O(1)`.
  */
-void upo_ht_sepchain_odelete(upo_ht_sepchain_t ht, const void *key, int destroy_data);
+size_t upo_ht_linprob_size(const upo_ht_linprob_t ht);
+
+/**
+ * \brief Counts the number of keys colliding with the given \a key.
+ *
+ * \param ht The hash table.
+ * \param key The key for which counting the number of colliding keys.
+ * \return The number of colliding keys of \a key if \a key is contained by the hash table, or `-1`, otherwise.
+ */
+double upo_ht_linprob_avg_collisions(const upo_ht_linprob_t ht, const upo_ht_key_list_t key_list);
 
 
-/*** END of HASH TABLE with SEPARATE CHAINING ***/
+/*** END of HASH TABLE with OPEN ADDRESSING ***/
 
 
 /*** BEGIN of HASH FUNCTIONS ***/

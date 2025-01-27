@@ -134,6 +134,8 @@ void upo_bst_clear(upo_bst_t tree, int destroy_data);
  */
 int upo_bst_is_empty(const upo_bst_t tree);
 
+void upo_bst_insert(upo_bst_t tree, void *key, void *value);
+
 /**
  * \brief Returns the number of nodes stored on the given binary search tree.
  *
@@ -156,6 +158,8 @@ size_t upo_bst_size(const upo_bst_t tree);
  * 
  * Worst-case complexity: linear in the number `n` of elements, `O(n)`.
  */
-void *upo_bst_nmin(const upo_bst_t tree, const void *key, const int n);
+int upo_bst_ksum_range(const upo_bst_t bst, const void*low, const void*high);
+
+
 
 #endif /* UPO_BST_H */

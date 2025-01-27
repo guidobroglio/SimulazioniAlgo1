@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/guido/Scrivania/SimulazioniAlgoritmi1-main/exam-sample_03",
-      "program": "/home/guido/Scrivania/SimulazioniAlgoritmi1-main/exam-sample_03/build/Debug/outDebug",
+      "cwd": "/home/guido/Scrivania/SimulazioniAlgoritmi1-main/exam-sample_01",
+      "program": "/home/guido/Scrivania/SimulazioniAlgoritmi1-main/exam-sample_01/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

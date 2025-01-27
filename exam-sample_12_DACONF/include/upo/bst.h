@@ -144,16 +144,18 @@ upo_bst_comparator_t upo_bst_get_comparator(const upo_bst_t tree);
 int upo_bst_is_empty(const upo_bst_t tree);
 
 /**
- * \brief Return the predecessor of the given key in the BST.
+ * \brief Counts the number of nodes of the subtree rooted at the node of the
+ *  binary search tree containing the given key and that are located at an
+ *  even depth.
  *
  * \param tree The binary search tree.
- * \param key Pointer to the value for which the predecessor is to be computed.
- * \return A pointer to the largest key which is less than the value pointed
- *  by \a key or NULL if no such key exists or if the BST is NULL.
- *
- * Worst-case complexity: linear in the the number `n` of elements.
+ * \param key The key for which this function must return the number of nodes of
+ *  the subtree rooted at the associated node and located at an even depth.
+ * \return The number of nodes of the subtree rooted at the node containing the
+ *  given key and located at an even depth, or `0` if the tree is empty or if
+ *  the given key does not belong to the tree.
  */
-const void* upo_bst_predecessor(const upo_bst_t tree, const void *key);
+size_t upo_bst_subtree_count_even(const upo_bst_t tree, const void* key);
 
 
 #endif /* UPO_BST_H */

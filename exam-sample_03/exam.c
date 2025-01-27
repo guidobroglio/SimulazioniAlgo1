@@ -160,7 +160,6 @@ double upo_ht_linprob_avg_collisions(const upo_ht_linprob_t ht, const upo_ht_key
         return -1;
     }
     upo_ht_key_list_node_t*current=key_list;
-
     size_t total_collisions=0;
     size_t keys_count=0;
 
@@ -168,15 +167,15 @@ double upo_ht_linprob_avg_collisions(const upo_ht_linprob_t ht, const upo_ht_key
     {
         size_t hash_index=upo_ht_linprob_get_hasher(ht)(current->key, upo_ht_linprob_capacity(ht));
         size_t collisions=0;
-        int key_found=0;
+        int keys_found=0;
 
-        while(ht->slots[hash_index].key!=NULL && collisions<upo_ht_linprob_capacity(ht) && key_found==0)
+        while(ht->slots[hash_index].key!=NULL && collisions<upo_ht_linprob_capacity(ht) && keys_found==0)
         {
             if(upo_ht_linprob_get_comparator(ht)(ht->slots[hash_index].key, current->key)==0)
             {
                 total_collisions+=collisions;
                 keys_count++;
-                key_found=1;
+                keys_found=1;
             }
             hash_index=(hash_index+1)%upo_ht_linprob_capacity(ht);
             collisions++;

@@ -2,7 +2,7 @@
 /*** NOME: Guido Lorenzo                                                    ***/
 /*** COGNOME: Broglio                                                       ***/
 /*** MATRICOLA: 20043973                                                    ***/
-/*** DATA: 25 Settembre 2020                                                ***/
+/*** DATA: 19 Giugno 2024                                                   ***/
 /******************************************************************************/
 
 #include <assert.h>
@@ -10,111 +10,170 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "include/upo/bst.h"
 #include "include/upo/hashtable.h"
+#include "include/upo/bst.h"
 
-/* ESERCIZIO 1*/
-/*
-Dati in input un albero binario di ricerca BST e una chiave k, implementare un algoritmo che dica se la
-chiave k e' contenuta nel BST e che calcoli la profondita' del nodo che contiene k. In particolare:
- - se la chiave k e' contenuta nel BST, l'algoritmo deve ritornare True (valore intero diverso da zero) e
-    deve calcolare la profondità del nodo in cui è memorizzata la chiave k.
-- se la chiave k non e' contenuta nel BST o se il BST e' vuoto, l'algoritmo deve ritornare False
-    (il valore intero 0) e come profondita' deve ritornare il valore intero -1.
-*/
+/** Esercizio 1
+ *
+ * Implementare un algoritmo che dato un albero binario di ricerca BST e un intervallo [Klow, Khigh],
+ * restituisca la somma dei valori dei nodi le cui chiavi sono contenute nell'intervallo o 0 se nessuna
+ * chiave è contenuta nell'intervallo o se il BST è vuoto.
+ *
+ * Si noti che l'intervallo di chiavi è da intendersi con estremi inclusi e il tipo dei valori dei nodi
+ * è da considerarsi intero (int). Dato un albero, possiamo dire di avere:
+ *
+ * esempio di albero (primo valore key, secondo value)
+ *
+ *                                          k:8 v:0
+ *                      k:3 v:1                                 k:10 v:6
+ *           k:1 v:2            k:6 v:3                                     k:14 v:7
+ *                      k:4 v:4        k:7 v:5                      k:13 v:8
+ *
+ *  - Somma dei valori di nodi con chiavi in [1, 8] = 15
+ *  - Somma dei valori di nodi con chiavi in [6, 16] = 29
+ *  - Somma dei valori di nodi con chiavi in [15, 19] = 0
+ *  - Somma dei valori di nodi con chiavi in [8, 12] = 6
+ *
+ * L'algoritmo implementato dev'essere ottimo, nel senso che deve visitare l'albero una sola volta e la
+ * complessità termporale del caso peggiore dev'Essere O(n), dove n è il numero di chiavi del BST.
+ *
+ * La funzione da implementare si trova nel file ed ha il seguente prototipo:
+ * int upo_bst_ksum_range(const upo_bst_t bst, const void*low, const void*high)
+ * Con parametri:
+ *  - bst: BST
+ *  - low: puntatore al limite inferiore dell'intervallo
+ *  - high: puntatore al limite superiore dell'intervallo
+ * Come valore di ritorno:
+ *  - Se il BST non è vuoto ed esistono nodi le cui chiavi sono contenute nell'intervallo specificato,
+ *    restituisce la somma dei valori dei nodi le cui chiavi sono contenute nell'intervallo
+ *  - Se il BST è vuoto o non ci sono chiavi contenute nell'intervallo specificato, restituisce 0
+ *
+ */
 
-int upo_bst_contains_depth_imp(upo_bst_node_t*node, void*key, long*depth, upo_bst_comparator_t key_cmp);
+int upo_bst_ksum_range_imp(upo_bst_node_t*subtree, void*low, void*high, upo_bst_comparator_t key_cmp);
 
-int upo_bst_contains_depth_imp(upo_bst_node_t*node, void*key, long*depth, upo_bst_comparator_t key_cmp)
+int upo_bst_ksum_range_imp(upo_bst_node_t*subtree, void*low, void*high, upo_bst_comparator_t key_cmp)
 {
-    if(node==NULL)
+    if(subtree==NULL)
     {
-        *depth=-1:
         return 0;
     }
-    int compare=key_cmp(key, node->key);
+    int sum=0;
+    int compare_low=key_cmp(subtree->key, low);
+    int compare_high=key_cmp(subtree->key, high);
 
-    if(compare<0)
+    if(compare_low>=0 && compare_high<=0)
     {
-        *(depth)++;
-        return upo_bst_contains_depth_imp(node->left, depth, key_cmp);
+        sum+=subtree->value;
     }
-    else if(compare>0)
+
+    if(compare_low>0)
     {
-        *(depth)++;
-        return upo_bst_contains_depth_imp(node->right, depth, key_cmp);
+        sum+=upo_bst_ksum_range_imp(subtree->left, low, high, key_cmp);
     }
-    else
+    else if(compare_high<0)
     {
-        return depth;
+        sum+=upo_bst_ksum_range_imp(subtree->right, low, high, key_cmp);
     }
+
+    return sum;
 }
 
-int upo_bst_contains_depth(const upo_bst_t bst, void *key, long *depth)
+int upo_bst_ksum_range(const upo_bst_t bst, const void*low, const void*high)
 {
-    if(upo_bst_is_empty(bst) || key==NULL)
+    if(upo_bst_is_empty(bst))
     {
-        *depth=-1;
         return 0;
     }
-    *depth=0;
-    return upo_bst_contains_depth_imp(bst->root, key, depth, bst->key_cmp);
+    return upo_bst_ksum_range_imp(bst->root, low, high, bst->key_cmp);
 }
 
-/*FINE ESERCIZIO 1*/
+/** Esercizio 2
+ *
+ * Implementare un algoritmo che, data una tabella hash H, con gestione delle collisioni basata su
+ * indirizzaento aperto e scansione lineare con uso di tombstone (HT-LP), e una lista di chiavi Ikey,
+ * calcoli il massimo numero di collisioni delle chiavi k contenute in Ikey in H.
+ * In particolare, se H è vuota o se Ikey è vuota, o se nessuna chiave di Ikey è contenuta in H,
+ * l'algoritmo deve restituire il valore -1.
+ * Si noti che nel calcolare il numero di collisioni di una chiave k non si deve tenere conto dello slot
+ * in cui k è memorizzato e che uno slot tombstone, se attraversato, è considerato una collisione.
+ * Per esempio, prendendo in analisi la seguente tabella e la lista di chiavi:
+ *
+ *  H       key         value       tombstone
+ *  0       P           10          false
+ *  1       M           9           false
+ *  2                               true
+ *  3                               true
+ *  4       A           8           false
+ *  5       C           4           false
+ *  6       S           0           false
+ *  7       H           5           false
+ *  8       L           11          false
+ *  9                               true
+ *  10      E           12          false
+ *  11                              false
+ *
+ *  key_list
+ *  key     next    key     next    key     next     key     next
+ *  a   -   /   --   c   -   /   -   z  -   /     -   e   -   /   -
+ *
+ * Supponendo che il valore hash delle chiavi A, C, E, sia rispettivamente 0, 0 e 10, il numero massimo
+ * di collisioni è 5 in quanto:
+ *  - Il numero di collisioni di A è 4
+ *  - il numero di collisioni di C è 5
+ *  - il numero di collisioni di E è 0
+ * L'algoritmo implementato deve essere ottimo nel senso che non deve visitare parti di HT-LP inutili
+ * ai fini dell'esercizio.
+ *
+ * La funzione da implementare ha il seguente prototipo:
+ * long upo_ht_linprob_max_collisions(const upo_ht_linprob_t ht, const upo_ht_key_list_t key_list)
+ * Con parametri:
+ *  - ht: HT-LP
+ *  - key_list: lista concatenata di chiavi
+ */
 
-/* ESERCIZIO 2 */
-/*
-Implementare un algoritmo che, data una tabella hash H con gestione delle collisioni basata su indirizzamento
-aperto a scansione lineare con tecnica del "tombstone", una chiave k ed un valore booleano d, cancelli da H
-la coppia chiave-valore identificata da k e ritorni True per identificare l'avvenuta cancellazione. Inoltre,
-se d è True, l'algoritmo deve deallocare la memoria allocata per la coppia chiave-valore rimossa. Se k non
-e' contenuta in H, l'algoritmo deve ritonare False (cioè il valore 0) per indicare che non è avvenuta alcuna
-cancellazione. ATTENZIONE: non e' necessario utilizzare la tecnica del resizing-rehashing
-*/
+ // Implementazione del metodo upo_ht_linprob_max_collisions
+ long upo_ht_linprob_max_collisions(const upo_ht_linprob_t ht, const upo_ht_key_list_t key_list)
+ {
+     if(upo_ht_linprob_is_empty(ht))
+     {
+         return -1;
+     }
+     long max_collisions=0;
+     upo_ht_key_list_t current=key_list;
 
-//Metodo responsabile della cancellazione della coppia chiave-valore
-int upo_ht_linprob_deletex(upo_ht_linprob_t ht, const void *key, int destroy_data);
+     while(current!=NULL)
+     {
+         size_t hash_index=upo_ht_linprob_get_hasher(ht)(current->key, upo_ht_linprob_capacity(ht));
+         size_t collisions=0;
+         size_t capacity=upo_ht_linprob_capacity(ht);
+         int keys_found=0;
 
-//Implementazione del metodo responsabile della cancellazione della coppia chiave-valore
-int upo_ht_linprob_deletex(upo_ht_linprob_t ht, const void *key, int destroy_data)
-{
-    //Controllo se la tabella hash è vuota, o se la chiave è NULL, in tal caso ritorno 0
-    if(upo_ht_linprob_is_empty(ht) || key==NULL)
-    {
-        return 0;
-    }
-    //inizializzo hash con il risultato della funzione di hash
-    size_t hash=ht->key_hash(key, ht->capacity);
-    //Scorro la tabella hash
-    while(ht->slots[hash].key!=NULL && ht->key_cmp(ht->slots[hash].key, key)!=0 || ht->slots[hash].tombstone==1)
-    {
-        //Incremento hash
-        hash=(hash+1)%ht->capacity;
-    }
-    //Controllo se la chiave corrisponde
-    if(ht->slots[hash].key!=NULL)
-    {
-        //Se la chiave corrisponde, controllo se devo deallocare la memoria
-        if(destroy_data)
-        {
-        free(ht->slots[hash].key);
-        free(ht->slots[hash].value);
-        }
-        //Dealloca la memoria occupata dalla chiave e dal valore
-        ht->slots[hash].key=NULL;
-        ht->slots[hash].value=NULL;
-        //Setto il tombstone a 0
-        ht->slots[hash].tombstone=0;
-        //Decremento la dimensione della tabella hash
-        ht->size-=1;
-        //Ritorno 1
-        return 1;
-    }
-    //Altrimenti, ritorno 0
-    else
-    {
-        return 0;
-    }
-}
-/*FINE ESERCIZIO 2*/
+         for(size i=0; i<capacity && keys_found==0; i++)
+         {
+             if(ht->slost[hash_index].key==NULL)
+             {
+                 keys_found=1;
+             }
+             else if(upo_ht_linprob_get_comparator(ht)(ht->slots[hash_index].key, current->key)==0)
+             {
+                 if(collisions>max_collisions)
+                 {
+                     max_collisions=collisions;
+                 }
+                 keys_found=1;
+             }
+             else
+             {
+                 collisions++;
+                 hash_index=(hash_index+1)%capacity;
+             }
+         }
+         current=current->next;
+     }
+     if(max_collisions>0)
+     {
+         return max_collisions;
+     }
+     return -1;
+ }

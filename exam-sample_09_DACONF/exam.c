@@ -2,7 +2,7 @@
 /*** NOME: Guido Lorenzo                                                    ***/
 /*** COGNOME: Broglio                                                       ***/
 /*** MATRICOLA: 20043973                                                    ***/
-/*** DATA: 7 Novembre 2020                                                  ***/
+/*** DATA: 25 Settembre 2020                                                ***/
 /******************************************************************************/
 
 #include <assert.h>
@@ -14,113 +14,95 @@
 #include "include/upo/hashtable.h"
 
 /* ESERCIZIO 1*/
-/* 
-Dati in input un albero binario di ricerca (BST) e una chiave k, implementare un algoritmo che restituisca 
-il numero di nodi interni del sotto-albero radicato in k. Si noti che:
-• per nodo interno s’intende un nodo che ha almeno un figlio;
-• il conteggio dei nodi può includere anche la radice del sotto-albero (cioè, il nodo contenente la chiave k) 
-se essa è un nodo interno. Se la chiave k non è presente nel BST o se il BST è vuoto o se il sotto-albero 
-non contiene nodi interni, l’algoritmo deve ritornare il valore 0. 
+/*
+Dati in input un albero binario di ricerca BST e una chiave k, implementare un algoritmo che dica se la
+chiave k e' contenuta nel BST e che calcoli la profondita' del nodo che contiene k. In particolare:
+ - se la chiave k e' contenuta nel BST, l'algoritmo deve ritornare True (valore intero diverso da zero) e
+    deve calcolare la profondità del nodo in cui è memorizzata la chiave k.
+- se la chiave k non e' contenuta nel BST o se il BST e' vuoto, l'algoritmo deve ritornare False
+    (il valore intero 0) e come profondita' deve ritornare il valore intero -1.
 */
-//Metodo responsabile del conteggio dei nodi interni
-void upo_bst_subtree_count_inner_imp(upo_bst_node_t *node, void *key, size_t *inners);
 
-//Metodo responsabile della selezione del nodo con valore key
-upo_bst_node_t*upo_bst_get(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp);
+int upo_bst_contains_depth_imp(upo_bst_node_t*node, void*key, long*depth, upo_bst_comparator_t key_cmp);
 
-//Metodo responsabile del conteggio dei nodi interni
-upo_bst_node_t*upo_bst_get(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp)
+int upo_bst_contains_depth_imp(upo_bst_node_t*node, void*key, long*depth, upo_bst_comparator_t key_cmp)
 {
-    //Controllo se il nodo è NULL, in tal caso ritorno NULL
     if(node==NULL)
     {
-        return NULL;
+        *depth=-1:
+        return 0;
     }
-    //inizializzo la variabile di confronto, confrontando la chiave con la chiave del nodo
     int compare=key_cmp(key, node->key);
-    //Controllo se la chiave è minore di quella del nodo
+
     if(compare<0)
     {
-        //Se la chiave è minore, la ricerca continua nel sottoalbero sinistro
-        return upo_bst_get(node->left, key, key_cmp);
+        *(depth)++;
+        return upo_bst_contains_depth_imp(node->left, depth, key_cmp);
     }
-    //Controllo se la chiave è maggiore di quella del nodo
     else if(compare>0)
     {
-        //Se la chiave è maggiore, la ricerca continua nel sottoalbero destro
-        return upo_bst_get(node->right, key, key_cmp);
+        *(depth)++;
+        return upo_bst_contains_depth_imp(node->right, depth, key_cmp);
     }
-    //Altrimenti, la chiave è stata trovata
     else
     {
-        return node;
+        return depth;
     }
 }
 
-//Metodo responsabile dell'implementazione del conteggio dei nodi interni
-void upo_bst_subtree_count_inner_imp(upo_bst_node_t *node, void *key, size_t *inners)
+int upo_bst_contains_depth(const upo_bst_t bst, void *key, long *depth)
 {
-    //Controllo se il nodo è NULL, in tal caso esco dal metodo
-    if(node==NULL)
-    {
-        return;
-    }
-    //Controllo se il nodo ha almeno un figlio, in tal caso incremento il contatore
-    if(node->left!=NULL || node->right!=NULL)
-    {
-        (*inners)++;
-    }
-    //Chiamata ricorsiva sul sottoalbero sinistro e destro
-    upo_bst_subtree_count_inner_imp(node->left, key, inners);
-    upo_bst_subtree_count_inner_imp(node->right, key, inners);
-}
-
-//Metodo responsabile del conteggio dei nodi interni
-size_t upo_bst_subtree_count_inner(const upo_bst_t bst, const void *key)
-{
-    //Controllo se l'albero è vuoto o la chiave è NULL, in tal caso ritorno 0
     if(upo_bst_is_empty(bst) || key==NULL)
     {
+        *depth=-1;
         return 0;
     }
-    //Inizializzo il nodo con la chiave key
-    upo_bst_node_t*node=upo_bst_get(bst->root, (void*)key, bst->key_cmp);
-    //Controllo se il nodo è NULL, in tal caso ritorno 0
-    if(node==NULL)
-    {
-        return 0;
-    }
-    //Inizializzo il contatore
-    int count=0;
-    //Chiamata al metodo responsabile del conteggio dei nodi interni, passando il nodo, la chiave e il contatore
-    upo_bst_subtree_count_inner_imp(node, key, &count);
-    //Ritorno il contatore
-    return count;
+    *depth=0;
+    return upo_bst_contains_depth_imp(bst->root, key, depth, bst->key_cmp);
 }
+
+/*FINE ESERCIZIO 1*/
 
 /* ESERCIZIO 2 */
-/* Implementare un algoritmo che, data una tabella hash H con gestione delle collisioni basata su 
-concatenazioni separate (HT-SC) e una chiave k, conti il numero di collisioni di k in H. Se k non è contenuta 
-in H, l’algoritmo deve ritornare il valore 0. 
+/*
+Implementare un algoritmo che, data una tabella hash H con gestione delle collisioni basata su indirizzamento
+aperto a scansione lineare con tecnica del "tombstone", una chiave k ed un valore booleano d, cancelli da H
+la coppia chiave-valore identificata da k e ritorni True per identificare l'avvenuta cancellazione. Inoltre,
+se d è True, l'algoritmo deve deallocare la memoria allocata per la coppia chiave-valore rimossa. Se k non
+e' contenuta in H, l'algoritmo deve ritonare False (cioè il valore 0) per indicare che non è avvenuta alcuna
+cancellazione. ATTENZIONE: non e' necessario utilizzare la tecnica del resizing-rehashing
 */
 
-//Metodo responsabile del conteggio delle collisioni
-size_t upo_ht_sepchain_count_collisions(const upo_ht_sepchain_t ht, const void *key);
+//Metodo responsabile della cancellazione della coppia chiave-valore
+int upo_ht_linprob_deletex(upo_ht_linprob_t ht, const void *key, int destroy_data);
 
-//Implementazione del metodo responsabile del conteggio delle collisioni
-size_t upo_ht_sepchain_count_collisions(const upo_ht_sepchain_t ht, const void *key)
+//Implementazione del metodo responsabile della cancellazione della coppia chiave-valore
+int upo_ht_linprob_deletex(upo_ht_linprob_t ht, const void *key, int destroy_data)
 {
-    if(upo_ht_sepchain_is_empty(ht) || key==NULL)
+    if(upo_ht_linprob_is_empty(ht) || ht==NULL || key==NULL)
     {
         return 0;
     }
-    size_t collisions=0;
-    for(size_t hash=0; hash<ht->capacity; hash++)
+    size_t hash_index=ht->key_hash(key, ht->capacity);
+
+    while(ht->slots[hash_index].key!=NULL)
     {
-        if(ht->key_cmp(ht->slots[hash].head->key, key)==0)
+        if(ht->slots[hash_index].tombstone==0 && ht->key_cmp(ht->slots[hash_index].key, key)==0)
         {
-            collisions+=1;
+            if(destroy_data==1)
+            {
+                free(ht->slots[hash_index].key);
+                free(ht->slots[hash_index].value);
+            }
+            ht->slots[hash_index].key=NULL;
+            ht->slots[hash_index].value=NULL;
+            ht->slots[hash_index].tombstone=1;
+
+            ht->size--;
+            return 1;
         }
+        hash_index=(hash_index+1)%ht->capacity;
     }
-    return collisions;
+    return 0;
 }
+/*FINE ESERCIZIO 2*/

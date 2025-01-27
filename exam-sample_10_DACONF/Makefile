@@ -7,13 +7,13 @@ LDLIBS += -lupoalglib -lm
 
 .PHONY: all clean
 
-all: test/bst_predecessor test/bidi_bubble_sort
+all: test/bst_subtree_count_even test/ht_sepchain_odelete
 
-test/bst_predecessor: test/bst_predecessor.o exam.o
+test/bst_subtree_count_even: test/bst_subtree_count_even.o exam.o
 
-test/bidi_bubble_sort: test/bidi_bubble_sort.o exam.o
+test/ht_sepchain_odelete: test/ht_sepchain_odelete.o exam.o
 
 clean:
-	$(RM) test/bst_predecessor
-	$(RM) test/bidi_bubble_sort
+	$(RM) test/bst_subtree_count_even
+	$(RM) test/ht_sepchain_odelete
 	$(RM) *.o test/*.o

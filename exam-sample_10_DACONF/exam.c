@@ -2,7 +2,7 @@
 /*** NOME: Guido Lorenzo                                                    ***/
 /*** COGNOME: Broglio                                                       ***/
 /*** MATRICOLA: 20043973                                                    ***/
-/*** DATA: 23 Giugno 2022                                                   ***/
+/*** DATA: 7 Novembre 2020                                                  ***/
 /******************************************************************************/
 
 #include <assert.h>
@@ -12,175 +12,130 @@
 #include <string.h>
 #include "include/upo/bst.h"
 #include "include/upo/hashtable.h"
-#include "include/upo/sort.h"
 
-/** Esercizio 1
- * 
- * Implementare un algoritmo che ritorni l'altezza di un nodo associato ad una chiave di un albero BST.
- * Dato un BST e una chiave k, l'altezza del nodo contenente la chiave k e la lunghezza del più lungo
- * cammino che parte da quel nodo e termina su una foglia del suo albero. Se il BST è vuoto o la chiave
- * k non è presente nel BST, l'algoritmo deve ritornare il valore -1.
- * 
- * esempio di albero
- *                  8
- *          3               10
- *      1       6               14
- *          4       7       13
- * Dato l'albero abbiamo:
- *  - Altezza del nodo con chiave 8: 3
- *  - Altezza del nodo con chiave 3: 2
- *  - Altezza del nodo con chiave 1: 0
- *  - Altezza del nodo con chiave 14: 1
- *  - Altezza del nodo con chiave 5: -1
- *  - Altezza del nodo con chiave 20: -1
- * 
- * L'algoritmo deve essere ottimo, nel senso che deve visitare l'albero una sola volta e non deve visitare
- * sotto alberi inutili ai fini dell'esercizio.
- * 
- * La funzione da implementare è:
- * long upo_bst_key_height(const upo_bst_t_bst, const void*key)
- * 
- * con parametri:
- *  - bst: bst
- *  - key: puntatore alla chieve per cui si vuole calcolare l'altezza del nodo corrispondente.
- * 
- * Come valore di ritorno avremo:
- *  - Se il BST non è vuoto e la chiave key è contenuta nel BST, restituisce un numero intero 
- *    rappresentante l'altezza del nodo avente come chiave il valore puntato da key
- *  - Se il BST è vuoto o la chiave key non è nel BST, restituisce -1.
- */
+/* ESERCIZIO 1*/
+/*
+Dati in input un albero binario di ricerca (BST) e una chiave k, implementare un algoritmo che restituisca
+il numero di nodi interni del sotto-albero radicato in k. Si noti che:
+• per nodo interno s’intende un nodo che ha almeno un figlio;
+• il conteggio dei nodi può includere anche la radice del sotto-albero (cioè, il nodo contenente la chiave k)
+se essa è un nodo interno. Se la chiave k non è presente nel BST o se il BST è vuoto o se il sotto-albero
+non contiene nodi interni, l’algoritmo deve ritornare il valore 0.
+*/
+//Metodo responsabile del conteggio dei nodi interni
+void upo_bst_subtree_count_inner_imp(upo_bst_node_t *node, void *key, size_t *inners);
 
-//Metodo che restituisce l'altezza del nodo con chiave key
-upo_bst_node_t*upo_bst_get_imp(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp);
+//Metodo responsabile della selezione del nodo con valore key
+upo_bst_node_t*upo_bst_get(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp);
 
-//Metodo che restituisce l'altezza del nodo con chiave key
-upo_bst_node_t*upo_bst_get_imp(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp)
+//Metodo responsabile del conteggio dei nodi interni
+upo_bst_node_t*upo_bst_get(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp)
 {
-    //Se il nodo è NULL, restituisci NULL
+    //Controllo se il nodo è NULL, in tal caso ritorno NULL
     if(node==NULL)
     {
         return NULL;
     }
-    //Altrimenti, confronta la chiave del nodo con la chiave key
+    //inizializzo la variabile di confronto, confrontando la chiave con la chiave del nodo
+    int compare=key_cmp(key, node->key);
+    //Controllo se la chiave è minore di quella del nodo
+    if(compare<0)
+    {
+        //Se la chiave è minore, la ricerca continua nel sottoalbero sinistro
+        return upo_bst_get(node->left, key, key_cmp);
+    }
+    //Controllo se la chiave è maggiore di quella del nodo
+    else if(compare>0)
+    {
+        //Se la chiave è maggiore, la ricerca continua nel sottoalbero destro
+        return upo_bst_get(node->right, key, key_cmp);
+    }
+    //Altrimenti, la chiave è stata trovata
     else
     {
-        //inizializzo la variabile compare con il risultato del confronto tra la chiave del nodo e la chiave key
-        int compare=key_cmp(key, node->key);
-        //Se compare è minore di 0, restituisci il sottoalbero sinistro
-        if(compare<0)
-        {
-            return upo_bst_get_imp(node->left, key, key_cmp);
-        }
-        //Se compare è maggiore di 0, restituisci il sottoalbero destro
-        else if(compare>0)
-        {
-            return upo_bst_get_imp(node->right, key, key_cmp);
-        }
-        //Altrimenti, restituisci il nodo
-        else
-        {
-            return node;
-        }
+        return node;
     }
 }
 
-//Metodo che restituisce l'altezza del nodo
-long upo_bst_key_height_imp(upo_bst_node_t*node)
+//Metodo responsabile dell'implementazione del conteggio dei nodi interni
+void upo_bst_subtree_count_inner_imp(upo_bst_node_t *node, void *key, size_t *inners)
 {
-    //Se il nodo è NULL, restituisci -1
+    //Controllo se il nodo è NULL, in tal caso esco dal metodo
     if(node==NULL)
     {
-        return -1;
+        return;
     }
-    //Altrimenti, calcola l'altezza del sottoalbero sinistro e destro
-    long left_height=upo_bst_key_height_imp(node->left);
-    long right_height=upo_bst_key_height_imp(node->right);
-
-    //Se l'altezza del sottoalbero sinistro è maggiore dell'altezza del sottoalbero destro
-    if(left_height>right_height)
+    //Controllo se il nodo ha almeno un figlio, in tal caso incremento il contatore
+    if(node->left!=NULL || node->right!=NULL)
     {
-        //Restituisci l'altezza del sottoalbero sinistro
-        return 1+left_height;
+        (*inners)++;
     }
-    //Altrimenti, restituisci l'altezza del sottoalbero destro
-    else
-    {
-        return 1+right_height;
-    }
+    //Chiamata ricorsiva sul sottoalbero sinistro e destro
+    upo_bst_subtree_count_inner_imp(node->left, key, inners);
+    upo_bst_subtree_count_inner_imp(node->right, key, inners);
 }
 
-//Implementazione del metodo che restituisce l'altezza del nodo con chiave key
-long upo_bst_key_height(const upo_bst_t bst, const void*key)
+//Metodo responsabile del conteggio dei nodi interni
+size_t upo_bst_subtree_count_inner(const upo_bst_t bst, const void *key)
 {
-    //Se il BST è vuoto o la chiave è NULL, restituisci -1
+    //Controllo se l'albero è vuoto o la chiave è NULL, in tal caso ritorno 0
     if(upo_bst_is_empty(bst) || key==NULL)
     {
-        return -1;
+        return 0;
     }
-    //Altrimenti, richiamo il metodo che restituisce il nodo con chiave key
-    upo_bst_node_t*node=upo_bst_get_imp(bst->root, key, bst->key_cmp);
-    //Se il nodo è NULL, restituisci -1
+    //Inizializzo il nodo con la chiave key
+    upo_bst_node_t*node=upo_bst_get(bst->root, (void*)key, bst->key_cmp);
+    //Controllo se il nodo è NULL, in tal caso ritorno 0
     if(node==NULL)
     {
-        return -1;
+        return 0;
     }
-    //Altrimenti, restituisci l'altezza del nodo
-    return upo_bst_key_height_imp(node);
+    //Inizializzo il contatore
+    int count=0;
+    //Chiamata al metodo responsabile del conteggio dei nodi interni, passando il nodo, la chiave e il contatore
+    upo_bst_subtree_count_inner_imp(node, key, &count);
+    //Ritorno il contatore
+    return count;
 }
 
-/** Esercizio 2
- * L'algoritmo odd-even sort è un algoritmo di ordinamento di complessità che è una variante di bubblesort.
- * In questo algoritmo si confrontano ripetutamente le coppie di posizioni pari e quelle di posizioni 
- * dispari fino a quando tutti gli elementi si trovano nell'ordine corrett. In particolare, l'algoritmo
- * esegue ripetutamente i seguenti due passaggi:
- * 
- * - Scansione dispari-pari: scambia le coppie di elementi adiacenti (ei, ei+1) in posizione dipari/pari con
- *   con i=1,3.., che si trovano nell'ordine sbagliato
- * - Scansione pari/dispari: scambia le coppie di elementi adiacenti (ei, ei+1) in posizione pari/dispari con
- *   i=0,2.., che si trovano nell'ordine sbagliato.
- * 
- * I passi sudetti sono ripetuti fino a quando non vengono più effettuati scambi in nessuno dei passi, cioè
- * tutti gli elementi si trovano nella posizione corretta. A questo punto, la sequenza è ordinata.
- * Per esempio, si consideri la sequenza da ordinare [5, 1, 4, 2, 8]. L'algoritmo esegue i seguenti passi:
- * 
- * 1. nuova iterazione: scansione dispari pari:
- *  - Scansione dispari/pari: 
- *      a) controlla 1 e 4 -> nulla da scambiare
- *      b) controlla 2 e 8 -> nulla da scambiare
- *  - Scansione pari/dispari:
- *      a) controlla 5 e 1 -> scambia: [1, 5, 4, 2, 8]
- *      b) controlla 4 e 2 -> scambia: [1, 5, 2, 4, 8]
- * 
- * 2. nuova iterazione:
- *  - Scansione dispari/pari:
- *      a) Controlla 5 e 2 -> scambia: [1, 2, 5, 4, 8]
- *      b) controlla 4 e 8 -> Nulla da scambiare
- *  - Scansione pari/dispari:
- *      a) Controlla 1 e 2 -> Nulla da scambiare
- *      b) Controlla 5 e 4 -> Scambia: [1, 2, 4, 5, 8]
- * 
- * 3. Nuova iterazione 
- *  - Scansione dispari/pari:
- *      a) Controlla 2 e 4 -> Nulla da scambiare
- *      b) Controlla 5 e 8 -> Nulla da scambiare
- *  - Scansione pari/dispari:
- *      a) Controlla 1 e 2 -> Nulla da scambiare
- *      b) Controlla 4 e 5 -> nulla da scambiare
- * 
- * La funzione da implementare si trova nel file ed è la funzione:
- * void upo_odd_even_sort(void*base, size_t n, size_t size, upo_sort_comparator_t cmp)
- * Con parametro:
- *  - base: puntatore alla prima cella dell'array da ordinare
- *  - n: numero di elementi dell'array da ordinare
- *  - cmp: puntatore alla funzione di comparazione utilizzata per confrontare due elementi dell'array, la quale
- *         ritorna un valore <, =, > di zero se il valore puntato dal primo argomento è minore, uguale o
- *         maggiore del valore puntato dal secondo argomento, rispettivamente.
- * La funzione non ritorna nulla.
-**/
+/* ESERCIZIO 2 */
+/* Implementare un algoritmo che, data una tabella hash H con gestione delle collisioni basata su
+concatenazioni separate (HT-SC) e una chiave k, conti il numero di collisioni di k in H. Se k non è contenuta
+in H, l’algoritmo deve ritornare il valore 0.
+*/
 
-void upo_odd_even_sort(void*base, size_t n, size_t size, upo_sort_comparator_t cmp)
+//Metodo responsabile del conteggio delle collisioni
+size_t upo_ht_sepchain_count_collisions(const upo_ht_sepchain_t ht, const void *key);
+
+//Implementazione del metodo responsabile del conteggio delle collisioni
+size_t upo_ht_sepchain_count_collisions(const upo_ht_sepchain_t ht, const void *key)
 {
-    perror("To implement");
-    abort();
-}
+    if(ht==NULL || key==NULL || upo_ht_sepchain_is_empty(ht))
+    {
+        return 0;
+    }
+    size_t hash_index=ht->key_hash(key, ht->capacity);
+    upo_ht_sepchain_list_node_t*current=ht->slots[hash_index].head;
 
+    size_t collisions=0;
+    int keys_found=0;
+
+    while(current!=NULL)
+    {
+        int compare=ht->key_cmp(key, current->key);
+        if(compare==0)
+        {
+            keys_found=1;
+        }
+        else
+        {
+            collisions++;
+        }
+        current=current->next;
+    }
+    if(keys_found==0)
+    {
+        return 0;
+    }
+    return collisions;
+}

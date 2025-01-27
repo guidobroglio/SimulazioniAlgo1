@@ -52,6 +52,8 @@
 
 upo_bst_node_t*upo_bst_get_depth(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp, size_t*depth);
 
+size_t upo_bst_subtree_count_even_imp(upo_bst_node_t*node, size_t depth);
+
 upo_bst_node_t*upo_bst_get_depth(upo_bst_node_t*node, void*key, upo_bst_comparator_t key_cmp, size_t*depth)
 {
     if(node==NULL)
@@ -59,7 +61,6 @@ upo_bst_node_t*upo_bst_get_depth(upo_bst_node_t*node, void*key, upo_bst_comparat
         return NULL;
     }
     int compare=key_cmp(key, node->key);
-
     if(compare<0)
     {
         (*depth)++;
@@ -76,16 +77,13 @@ upo_bst_node_t*upo_bst_get_depth(upo_bst_node_t*node, void*key, upo_bst_comparat
     }
 }
 
-size_t upo_bst_subtree_count_even_imp(upo_bst_node_t*node, size_t depth);
-
 size_t upo_bst_subtree_count_even_imp(upo_bst_node_t*node, size_t depth)
 {
     if(node==NULL)
     {
         return 0;
     }
-
-    int count;
+    int count=0;
 
     if(depth%2==0)
     {
@@ -95,7 +93,6 @@ size_t upo_bst_subtree_count_even_imp(upo_bst_node_t*node, size_t depth)
     {
         count=0;
     }
-
     count+=upo_bst_subtree_count_even_imp(node->left, depth+1);
     count+=upo_bst_subtree_count_even_imp(node->right, depth+1);
 
